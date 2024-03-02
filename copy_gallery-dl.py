@@ -1,10 +1,6 @@
-import json
-import os
-import subprocess
-import sys
-import chardet
-import win32clipboard
+import json, os, subprocess, sys, chardet, win32clipboard
 from ctypes import *
+from plyer import notification
 
 urls = sys.argv[1:]
 dl_list = ['gallery-dl']
@@ -72,14 +68,29 @@ if os.path.exists('gallery-dl.exe'):
 dl_list = dl_list + urls
 process = subprocess.Popen(dl_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=path)
 stdout, stderr = process.communicate()
-detected_encoding = chardet.detect(stdout)['encoding']
 
-output_list = stdout.decode(detected_encoding).split('\r\n')
-output_list = [s.lstrip('# ') for s in output_list]
-output_list = [x for x in output_list if x]
+if stdout:
+    detected_encoding = chardet.detect(stdout)['encoding']
+    output_list = stdout.decode(detected_encoding).split('\r\n')
+    output_list = [s.lstrip('# ') for s in output_list]
+    output_list = [x for x in output_list if x]
 
-for line in output_list:
-    print(line)
+    for line in output_list:
+        print(line)
 
-setClipboardFiles(output_list)
-readClipboardFilePaths()
+    setClipboardFiles(output_list)
+    readClipboardFilePaths()
+    notification.notify(title='复制程序', message='图片下载完成')
+
+if stderr:
+    detected_encoding = chardet.detect(stderr)['encoding']
+    output_list = stderr.decode(detected_encoding).split('\r\n')
+    output_list = [x for x in output_list if x]
+
+    for line in output_list:
+        print(line)
+
+    notification.notify(title='复制程序', message='图片下载失败！')
+
+
+
